@@ -5,10 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum
 from .models import Task
 from .serializers import TaskSerializer
+from rest_framework.permissions import AllowAny
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)
