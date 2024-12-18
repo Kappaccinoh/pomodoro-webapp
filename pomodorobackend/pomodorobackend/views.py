@@ -62,4 +62,13 @@ class TaskViewSet(viewsets.ModelViewSet):
         
         task.status = new_status
         task.save()
-        return Response(self.get_serializer(task).data) 
+        return Response(self.get_serializer(task).data)
+
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        """Search tasks by title"""
+        query = request.query_params.get('q', '')
+        tasks = self.get_queryset().filter(title__icontains=query)
+        serializer = self.get_serializer(tasks, many=True)
+        return Response(serializer.data)
+  

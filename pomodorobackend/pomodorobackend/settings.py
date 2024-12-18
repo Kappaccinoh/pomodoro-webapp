@@ -138,3 +138,5 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',  # Optional, for testing with basic auth
     ),
 }
+
+APPEND_SLASH = False

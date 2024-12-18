@@ -6,6 +6,7 @@ import CircularTimer from './components/CircularTimer';
 import TaskList from './components/TaskList';
 import { Task, DEMO_TASKS } from './types/task';
 import { taskApi } from './services/api';
+import { playSound } from './utils/sound';
 
 export default function Home() {
   const WORK_TIME = 25 * 60; // 25 minutes
@@ -29,13 +30,32 @@ export default function Home() {
   };
 
   useEffect(() => {
+    if (activeTaskId === null) {
+      setIsRunning(false);
+      setIsPaused(false);
+      setTimeLeft(TOTAL_TIME);
+    } else {
+      if (isRunning) {
+        setIsRunning(false);
+        setIsPaused(false);
+        setTimeLeft(TOTAL_TIME);
+      }
+    }
+  }, [activeTaskId, TOTAL_TIME]);
+
+  useEffect(() => {
     let intervalId: NodeJS.Timeout | undefined;
 
     if (isRunning && !isPaused && timeLeft > 0) {
+      if (timeLeft === TOTAL_TIME) {
+        playSound('start');
+      }
+      
       intervalId = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
             setIsRunning(false);
+            playSound('complete');
             return 0;
           }
           if (activeTaskId) {
@@ -51,7 +71,7 @@ export default function Home() {
         clearInterval(intervalId);
       }
     };
-  }, [isRunning, isPaused, timeLeft, activeTaskId]);
+  }, [isRunning, isPaused, timeLeft, activeTaskId, TOTAL_TIME]);
 
   const handleStartPause = () => {
     if (timeLeft === 0) {

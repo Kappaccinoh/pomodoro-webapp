@@ -67,4 +67,20 @@ export const taskApi = {
     if (!response.ok) throw new Error('Failed to fetch statistics');
     return response.json();
   },
+
+  deleteTask: async (taskId: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/`, {
+      method: 'DELETE',
+      headers
+    });
+    if (!response.ok) throw new Error('Failed to delete task');
+  },
+
+  searchTasks: async (query: string): Promise<TaskData[]> => {
+    const response = await fetch(`${API_BASE_URL}/tasks/search/?q=${encodeURIComponent(query)}`, {
+      headers
+    });
+    if (!response.ok) throw new Error('Failed to search tasks');
+    return response.json();
+  }
 }; 
