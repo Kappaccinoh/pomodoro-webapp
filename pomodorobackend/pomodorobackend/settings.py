@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure--qors2#5%pbfnsfmzcz-#^os5^)8)h03sfs^-rb6a)xdxg5o4#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']  # Be more restrictive in production
 
 
 # Application definition
@@ -75,7 +75,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pomodorobackend.wsgi.application'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -83,15 +88,15 @@ CORS_ALLOW_ALL_ORIGINS = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pomodorodb',
-        'USER': 'pomodorouser',
-        'PASSWORD': 'password',  # Change this to your PostgreSQL password
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('POSTGRES_DB', 'pomodorodb'),
+        'USER': os.environ.get('POSTGRES_USER', 'pomodorouser'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'password'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
 
-# Use SQLite for testing
+# Keep SQLite for testing
 if 'test' in sys.argv:
     DATABASES = {
         'default': {

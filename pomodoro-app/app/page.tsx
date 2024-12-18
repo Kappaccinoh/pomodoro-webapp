@@ -5,8 +5,6 @@ import ThemeToggle from './components/ThemeToggle';
 import CircularTimer from './components/CircularTimer';
 import TaskList from './components/TaskList';
 import { Task, DEMO_TASKS } from './types/task';
-import { taskApi } from './services/api';
-import { playSound } from './utils/sound';
 
 export default function Home() {
   const WORK_TIME = 25 * 60; // 25 minutes
@@ -19,59 +17,23 @@ export default function Home() {
   const [tasks, setTasks] = useState<Task[]>(DEMO_TASKS);
   const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
 
-  const updateTaskTime = (taskId: number, secondsToAdd: number) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, timeSpent: task.timeSpent + secondsToAdd }
-          : task
-      )
-    );
-  };
-
   useEffect(() => {
-    if (activeTaskId === null) {
-      setIsRunning(false);
-      setIsPaused(false);
-      setTimeLeft(TOTAL_TIME);
-    } else {
-      if (isRunning) {
-        setIsRunning(false);
-        setIsPaused(false);
-        setTimeLeft(TOTAL_TIME);
-      }
-    }
-  }, [activeTaskId, TOTAL_TIME]);
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | undefined;
-
-    if (isRunning && !isPaused && timeLeft > 0) {
-      if (timeLeft === TOTAL_TIME) {
-        playSound('start');
-      }
-      
-      intervalId = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
+    let interval: NodeJS.Timeout;
+    
+    if (isRunning && !isPaused) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 0) {
             setIsRunning(false);
-            playSound('complete');
             return 0;
           }
-          if (activeTaskId) {
-            taskApi.updateTaskTime(activeTaskId, 1).catch(console.error);
-          }
-          return prevTime - 1;
+          return prev - 1;
         });
       }, 1000);
     }
 
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isRunning, isPaused, timeLeft, activeTaskId, TOTAL_TIME]);
+    return () => clearInterval(interval);
+  }, [isRunning, isPaused]);
 
   const handleStartPause = () => {
     if (timeLeft === 0) {
@@ -89,13 +51,6 @@ export default function Home() {
     setTimeLeft(TOTAL_TIME);
     setIsRunning(false);
     setIsPaused(false);
-  };
-
-  const taskListProps = {
-    tasks,
-    setTasks,
-    activeTaskId,
-    setActiveTaskId
   };
 
   return (
@@ -136,7 +91,10 @@ export default function Home() {
           </button>
         </div>
 
-        <TaskList {...taskListProps} />
+        <TaskList 
+          activeTaskId={activeTaskId} 
+          setActiveTaskId={setActiveTaskId}
+        />
       </main>
     </div>
   );

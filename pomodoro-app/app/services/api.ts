@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Add Basic Auth headers with your superuser credentials
 const headers = {
@@ -19,7 +19,7 @@ export interface TaskData {
 export const taskApi = {
   // Get all tasks
   getTasks: async (): Promise<TaskData[]> => {
-    const response = await fetch(`${API_BASE_URL}/tasks/`, {
+    const response = await fetch(`${API_BASE_URL}/api/tasks/`, {
       headers
     });
     if (!response.ok) throw new Error('Failed to fetch tasks');
@@ -28,7 +28,7 @@ export const taskApi = {
 
   // Create new task
   createTask: async (task: { title: string; allocated_hours: number }): Promise<TaskData> => {
-    const response = await fetch(`${API_BASE_URL}/tasks/`, {
+    const response = await fetch(`${API_BASE_URL}/api/tasks/`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ ...task, status: 'todo' }),
@@ -39,7 +39,7 @@ export const taskApi = {
 
   // Update task time
   updateTaskTime: async (taskId: number, seconds: number): Promise<TaskData> => {
-    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/update_time/`, {
+    const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/update_time/`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ seconds }),
@@ -50,7 +50,7 @@ export const taskApi = {
 
   // Update task status
   updateTaskStatus: async (taskId: number, status: string): Promise<TaskData> => {
-    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/change_status/`, {
+    const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/change_status/`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ status }),
@@ -61,7 +61,7 @@ export const taskApi = {
 
   // Get task statistics
   getStatistics: async () => {
-    const response = await fetch(`${API_BASE_URL}/tasks/statistics/`, {
+    const response = await fetch(`${API_BASE_URL}/api/tasks/statistics/`, {
       headers
     });
     if (!response.ok) throw new Error('Failed to fetch statistics');
@@ -69,7 +69,7 @@ export const taskApi = {
   },
 
   deleteTask: async (taskId: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/`, {
+    const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/`, {
       method: 'DELETE',
       headers
     });
@@ -77,7 +77,7 @@ export const taskApi = {
   },
 
   searchTasks: async (query: string): Promise<TaskData[]> => {
-    const response = await fetch(`${API_BASE_URL}/tasks/search/?q=${encodeURIComponent(query)}`, {
+    const response = await fetch(`${API_BASE_URL}/api/tasks/search/?q=${encodeURIComponent(query)}`, {
       headers
     });
     if (!response.ok) throw new Error('Failed to search tasks');

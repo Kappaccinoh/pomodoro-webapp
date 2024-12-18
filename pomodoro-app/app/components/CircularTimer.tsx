@@ -7,7 +7,6 @@ interface CircularTimerProps {
 }
 
 export default function CircularTimer({ timeLeft, totalTime, breakTime }: CircularTimerProps) {
-  const percentage = (timeLeft / totalTime) * 100;
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const isInBreak = timeLeft <= breakTime;

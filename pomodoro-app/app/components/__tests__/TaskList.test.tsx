@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import TaskList from '../TaskList';
 import { taskApi } from '../../services/api';
 

@@ -1,25 +1,29 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.12-slim
+# Use Python 3.11 slim image
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=pomodorobackend.settings
 
-# Set the working directory
+# Set work directory
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt /app/
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python packages
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the project files
-COPY . /app/
+# Copy project files
+COPY . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
-
-# Expose the port the app runs on
+# Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "pomodorobackend.wsgi:application"]
+# Run migrations and start server
+CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]

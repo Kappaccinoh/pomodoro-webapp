@@ -5,7 +5,6 @@ import { PlusIcon, ClockIcon, PlayCircleIcon, TrashIcon } from '@heroicons/react
 import { taskApi, TaskData } from '../services/api';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { ErrorMessage } from './ui/ErrorMessage';
-import { playSound } from '../utils/sound';
 import { formatHoursToHM } from '../utils/time';
 
 interface TaskListProps {
@@ -68,7 +67,8 @@ export default function TaskList({ activeTaskId, setActiveTaskId }: TaskListProp
         setTasks(prevTasks => [newTaskData, ...prevTasks]);
         setNewTask('');
         setNewTaskHours(1);
-      } catch (err) {
+      } catch (error) {
+        console.error('Failed to create task:', error);
         setError('Failed to create task');
       }
     }
@@ -156,7 +156,7 @@ export default function TaskList({ activeTaskId, setActiveTaskId }: TaskListProp
   };
 
   // Add this function to get the active task
-  const activeTask = tasks.find(task => task.id === activeTaskId);
+  const activeTask = tasks.find(task => task.id === activeTaskId) ?? null;
 
   return (
     <div className="w-full max-w-md">
