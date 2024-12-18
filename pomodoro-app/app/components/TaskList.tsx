@@ -1,56 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon, ClockIcon, PlayCircleIcon } from '@heroicons/react/24/outline';
-import { Task, TaskStatus } from '../types/task';
+import { taskApi, TaskData } from '../services/api';
 
 interface TaskListProps {
-  tasks: Task[];
-  setTasks: (tasks: Task[]) => void;
   activeTaskId: number | null;
   setActiveTaskId: (id: number | null) => void;
 }
 
-export default function TaskList({ tasks, setTasks, activeTaskId, setActiveTaskId }: TaskListProps) {
+export default function TaskList({ activeTaskId, setActiveTaskId }: TaskListProps) {
+  const [tasks, setTasks] = useState<TaskData[]>([]);
   const [newTask, setNewTask] = useState('');
   const [newTaskHours, setNewTaskHours] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addTask = () => {
-    if (newTask.trim()) {
-      setTasks([...tasks, {
-        id: Date.now(),
-        title: newTask,
-        status: 'todo',
-        allocatedHours: newTaskHours,
-        timeSpent: 0
-      }]);
-      setNewTask('');
-      setNewTaskHours(1);
+  // Fetch tasks on component mount
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      const data = await taskApi.getTasks();
+      setTasks(data);
+    } catch (err) {
+      setError('Failed to fetch tasks');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const updateStatus = (taskId: number, newStatus: TaskStatus) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
+  const addTask = async () => {
+    if (newTask.trim()) {
+      try {
+        const newTaskData = await taskApi.createTask({
+          title: newTask,
+          allocated_hours: newTaskHours,
+        });
+        setTasks([newTaskData, ...tasks]);
+        setNewTask('');
+        setNewTaskHours(1);
+      } catch (err) {
+        setError('Failed to create task');
+      }
+    }
+  };
+
+  const updateStatus = async (taskId: number, newStatus: string) => {
+    try {
+      const updatedTask = await taskApi.updateTaskStatus(taskId, newStatus);
+      setTasks(tasks.map(task => 
+        task.id === taskId ? updatedTask : task
+      ));
+    } catch (err) {
+      setError('Failed to update task status');
+    }
   };
 
   const handleSelectTask = (taskId: number) => {
     setActiveTaskId(activeTaskId === taskId ? null : taskId);
   };
 
-  const formatTimeRemaining = (task: Task) => {
-    const allocatedSeconds = task.allocatedHours * 3600;
-    const remainingSeconds = allocatedSeconds - task.timeSpent;
+  const formatTimeRemaining = (task: TaskData) => {
+    const allocatedSeconds = task.allocated_hours * 3600;
+    const remainingSeconds = allocatedSeconds - task.time_spent;
     const hours = Math.floor(remainingSeconds / 3600);
     const minutes = Math.floor((remainingSeconds % 3600) / 60);
     
     return `${hours}h ${minutes}m remaining`;
   };
 
-  const getProgressPercentage = (task: Task) => {
-    const allocatedSeconds = task.allocatedHours * 3600;
-    return Math.min((task.timeSpent / allocatedSeconds) * 100, 100);
+  const getProgressPercentage = (task: TaskData) => {
+    const allocatedSeconds = task.allocated_hours * 3600;
+    return Math.min((task.time_spent / allocatedSeconds) * 100, 100);
   };
 
   return (
@@ -108,7 +132,7 @@ export default function TaskList({ tasks, setTasks, activeTaskId, setActiveTaskI
                     <div className="flex items-center gap-2">
                       <select
                         value={task.status}
-                        onChange={(e) => updateStatus(task.id, e.target.value as TaskStatus)}
+                        onChange={(e) => updateStatus(task.id, e.target.value)}
                         className="text-sm bg-transparent dark:bg-gray-700 dark:text-white text-gray-900 
                           rounded px-2 py-1 dark:border-gray-600 focus:ring-2 focus:ring-red-500"
                       >
@@ -123,7 +147,7 @@ export default function TaskList({ tasks, setTasks, activeTaskId, setActiveTaskI
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <ClockIcon className="w-4 h-4" />
-                        <span>{task.allocatedHours}h</span>
+                        <span>{task.allocated_hours}h</span>
                       </div>
                       <button
                         onClick={() => handleSelectTask(task.id)}

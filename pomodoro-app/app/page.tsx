@@ -5,6 +5,7 @@ import ThemeToggle from './components/ThemeToggle';
 import CircularTimer from './components/CircularTimer';
 import TaskList from './components/TaskList';
 import { Task, DEMO_TASKS } from './types/task';
+import { taskApi } from './services/api';
 
 export default function Home() {
   const WORK_TIME = 25 * 60; // 25 minutes
@@ -38,7 +39,7 @@ export default function Home() {
             return 0;
           }
           if (activeTaskId) {
-            updateTaskTime(activeTaskId, 1);
+            taskApi.updateTaskTime(activeTaskId, 1).catch(console.error);
           }
           return prevTime - 1;
         });
