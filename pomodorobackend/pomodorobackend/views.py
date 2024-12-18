@@ -19,8 +19,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     def update_time(self, request, pk=None):
         """Update time spent on a task"""
         task = self.get_object()
+        # Convert seconds to hours (1 hour = 3600 seconds)
         seconds = request.data.get('seconds', 0)
-        task.time_spent += int(seconds)
+        hours_to_add = float(seconds) / 3600
+        
+        task.time_spent = round(task.time_spent + hours_to_add, 4)  # Round to 4 decimal places
         task.save()
         return Response(self.get_serializer(task).data)
 
@@ -34,7 +37,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         todo = tasks.filter(status='todo').count()
 
         return Response({
-            'total_time_spent': total_time,
+            'total_hours_spent': round(total_time, 2),
             'total_tasks': tasks.count(),
             'completed_tasks': completed,
             'in_progress_tasks': in_progress,
