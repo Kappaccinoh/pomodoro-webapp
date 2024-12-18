@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ThemeToggle from './components/ThemeToggle';
 import CircularTimer from './components/CircularTimer';
 import TaskList from './components/TaskList';
+import { Task, DEMO_TASKS } from './types/task';
 
 export default function Home() {
   const WORK_TIME = 25 * 60; // 25 minutes
@@ -13,7 +14,19 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  
+  const [tasks, setTasks] = useState<Task[]>(DEMO_TASKS);
+  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
+
+  const updateTaskTime = (taskId: number, secondsToAdd: number) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === taskId 
+          ? { ...task, timeSpent: task.timeSpent + secondsToAdd }
+          : task
+      )
+    );
+  };
+
   useEffect(() => {
     let intervalId: NodeJS.Timeout | undefined;
 
@@ -23,6 +36,9 @@ export default function Home() {
           if (prevTime <= 1) {
             setIsRunning(false);
             return 0;
+          }
+          if (activeTaskId) {
+            updateTaskTime(activeTaskId, 1);
           }
           return prevTime - 1;
         });
@@ -34,7 +50,7 @@ export default function Home() {
         clearInterval(intervalId);
       }
     };
-  }, [isRunning, isPaused, timeLeft]);
+  }, [isRunning, isPaused, timeLeft, activeTaskId]);
 
   const handleStartPause = () => {
     if (timeLeft === 0) {
@@ -52,6 +68,13 @@ export default function Home() {
     setTimeLeft(TOTAL_TIME);
     setIsRunning(false);
     setIsPaused(false);
+  };
+
+  const taskListProps = {
+    tasks,
+    setTasks,
+    activeTaskId,
+    setActiveTaskId
   };
 
   return (
@@ -92,7 +115,7 @@ export default function Home() {
           </button>
         </div>
 
-        <TaskList />
+        <TaskList {...taskListProps} />
       </main>
     </div>
   );
